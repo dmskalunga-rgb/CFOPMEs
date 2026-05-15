@@ -1,14 +1,26 @@
 {
-  "installCommand": "pip install -r requirements-vercel.txt",
+  "installCommand": "pip install -r requirements.txt",
   "functions": {
     "api/main.py": {
       "maxDuration": 30
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "api/main.py"
+      "source": "/api/(.*)",
+      "destination": "/api/main.py"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/main.py"
+    },
+    {
+      "source": "/docs",
+      "destination": "/api/main.py"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/api/main.py"
     }
   ]
 }
