@@ -4,7 +4,7 @@
   "framework": "vite",
 
   "functions": {
-    "kwanza-ai-core/api/main.py": {
+    "api/main.py": {
       "maxDuration": 30
     }
   },
@@ -12,7 +12,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/kwanza-ai-core/api/main.py"
+      "destination": "/api/main.py"
     }
   ]
 }
