@@ -1,0 +1,365 @@
+# ==============================================================================
+# pre-commit-config.yaml
+# ------------------------------------------------------------------------------
+# Enterprise pre-commit configuration for the data platform.
+#
+# Install:
+#   pip install pre-commit
+#   pre-commit install
+#
+# Run all hooks:
+#   pre-commit run --all-files
+#
+# Update hook versions:
+#   pre-commit autoupdate
+# ============================================================================== 
+
+minimum_pre_commit_version: "3.7.0"
+
+ci:
+  autofix_commit_msg: "chore(pre-commit): auto-fix code quality issues"
+  autoupdate_commit_msg: "chore(pre-commit): update hook versions"
+  autoupdate_schedule: monthly
+  skip: []
+  submodules: false
+
+fail_fast: false
+
+default_language_version:
+  python: python3.11
+
+default_stages:
+  - pre-commit
+
+exclude: |
+  (?x)^(
+    \.git/|
+    \.venv/|
+    venv/|
+    env/|
+    \.tox/|
+    \.nox/|
+    build/|
+    dist/|
+    .*\.egg-info/|
+    htmlcov/|
+    storage/|
+    warehouse/|
+    data_lake/|
+    lakehouse/|
+    checkpoints/|
+    dead_letter/|
+    quarantine/|
+    backups/|
+    exports/|
+    imports/|
+    raw/|
+    processed/|
+    curated/|
+    archive/|
+    logs/|
+    tmp/|
+    temp/|
+    node_modules/|
+    site/|
+    docs/site/|
+    \.terraform/|
+    \.serverless/|
+    \.aws-sam/|
+    .*_pb2\.py|
+    .*_pb2_grpc\.py|
+    generated/|
+    vendor/
+  )
+
+repos:
+  # ---------------------------------------------------------------------------
+  # Generic hygiene
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+        args:
+          - --maxkb=1024
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+        exclude: ^(\.vscode/|docs/|examples/|samples/)
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-xml
+      - id: check-yaml
+        args:
+          - --allow-multiple-documents
+      - id: debug-statements
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+        args:
+          - --fix=lf
+      - id: name-tests-test
+        args:
+          - --pytest-test-first
+        files: ^tests/.*\.py$
+      - id: requirements-txt-fixer
+      - id: trailing-whitespace
+        args:
+          - --markdown-linebreak-ext=md
+
+  # ---------------------------------------------------------------------------
+  # Python formatting and linting
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      - id: ruff
+        name: ruff lint
+        args:
+          - --fix
+          - --exit-non-zero-on-fix
+        types_or:
+          - python
+          - pyi
+      - id: ruff-format
+        name: ruff format
+        types_or:
+          - python
+          - pyi
+
+  # Optional: keep Black as a compatibility safety net if your team still uses it.
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        args:
+          - --line-length=100
+        types_or:
+          - python
+          - pyi
+
+  # ---------------------------------------------------------------------------
+  # Type checking
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        name: mypy type check
+        args:
+          - --config-file=mypy.ini
+          - --show-error-codes
+          - --pretty
+        additional_dependencies:
+          - types-python-dateutil
+          - types-PyYAML
+          - types-requests
+        files: ^data/.*\.py$
+        pass_filenames: true
+
+  # ---------------------------------------------------------------------------
+  # Security scanning
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.9
+    hooks:
+      - id: bandit
+        name: bandit security scan
+        args:
+          - -c
+          - pyproject.toml
+          - -q
+        files: ^data/.*\.py$
+        additional_dependencies:
+          - bandit[toml]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        name: gitleaks secret scan
+        args:
+          - detect
+          - --redact
+          - --verbose
+          - --source=.
+
+  # ---------------------------------------------------------------------------
+  # Dependency and supply-chain checks
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pyupio/safety
+    rev: 3.2.7
+    hooks:
+      - id: safety
+        name: safety dependency vulnerability scan
+        args:
+          - check
+          - --full-report
+        files: ^(requirements.*\.txt|setup\.py|pyproject\.toml)$
+        pass_filenames: false
+
+  # ---------------------------------------------------------------------------
+  # YAML / TOML / JSON formatting
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        name: prettier format structured files
+        types_or:
+          - yaml
+          - json
+          - markdown
+        exclude: ^(coverage\.xml|reports/|storage/|docs/site/)
+
+  # ---------------------------------------------------------------------------
+  # Markdown quality
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.41.0
+    hooks:
+      - id: markdownlint
+        name: markdownlint
+        args:
+          - --fix
+        files: \.(md|markdown)$
+        exclude: ^(CHANGELOG\.md|docs/generated/)
+
+  # ---------------------------------------------------------------------------
+  # Dockerfile linting
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        name: hadolint Dockerfile lint
+        files: (^|/)Dockerfile(\..*)?$
+
+  # ---------------------------------------------------------------------------
+  # Terraform validation / formatting
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.92.3
+    hooks:
+      - id: terraform_fmt
+        name: terraform fmt
+      - id: terraform_validate
+        name: terraform validate
+      - id: terraform_tflint
+        name: terraform tflint
+        args:
+          - --args=--minimum-failure-severity=warning
+
+  # ---------------------------------------------------------------------------
+  # Shell scripts
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.10.0.1
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        files: \.(sh|bash|zsh)$
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.8.0-1
+    hooks:
+      - id: shfmt
+        name: shfmt
+        args:
+          - -w
+          - -s
+          - -i
+          - "2"
+        files: \.(sh|bash|zsh)$
+
+  # ---------------------------------------------------------------------------
+  # SQL linting
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.1.1
+    hooks:
+      - id: sqlfluff-lint
+        name: sqlfluff lint
+        args:
+          - --dialect
+          - postgres
+        files: \.(sql)$
+      - id: sqlfluff-fix
+        name: sqlfluff fix
+        args:
+          - --dialect
+          - postgres
+        files: \.(sql)$
+
+  # ---------------------------------------------------------------------------
+  # Local project-specific hooks
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: forbid-real-env-files
+        name: forbid committing real env files
+        entry: bash -c 'for f in "$@"; do case "$f" in *.env|.env|.env.*) if [ "$f" != ".env.example" ] && [ "$f" != ".env.template" ]; then echo "Refusing to commit real env file: $f"; exit 1; fi ;; esac; done' --
+        language: system
+        files: (^|/)\.env(\..*)?$|.*\.env$
+        pass_filenames: true
+
+      - id: forbid-large-data-files
+        name: forbid committing local data artifacts
+        entry: bash -c 'echo "Data artifacts should not be committed. Use object storage or fixtures only."; exit 1'
+        language: system
+        files: \.(parquet|avro|orc|feather|arrow|duckdb|sqlite|sqlite3|db|xlsx|xls|csv|tsv|jsonl|ndjson)$
+        exclude: ^(tests/fixtures/|examples/|samples/|docs/)
+        pass_filenames: false
+
+      - id: forbid-debug-flags
+        name: forbid unsafe debug flags in production config
+        entry: bash -c 'if grep -R "APP_DEBUG=true\|ALLOW_INSECURE_LOCAL_ONLY=true\|SECURITY_MASK_SECRETS_IN_LOGS=false" "$@"; then echo "Unsafe debug/security flag detected."; exit 1; fi' --
+        language: system
+        files: ^(\.env\.example|config/.*\.(yaml|yml|json)|docker-compose.*\.yml)$
+        pass_filenames: true
+
+      - id: python-compile
+        name: python compile check
+        entry: python -m compileall -q data
+        language: system
+        pass_filenames: false
+        types:
+          - python
+
+      - id: pytest-fast
+        name: pytest fast unit tests
+        entry: pytest tests -q -m "not integration and not e2e and not slow"
+        language: system
+        pass_filenames: false
+        stages:
+          - pre-push
+
+      - id: quality-import-smoke
+        name: package import smoke test
+        entry: python -c "import data; print(data.__version__); print(data.health_info(include_optional_dependencies=False)['status'])"
+        language: system
+        pass_filenames: false
+        stages:
+          - pre-push
+
+      - id: validate-setup-metadata
+        name: validate setup metadata
+        entry: python setup.py --name --version
+        language: system
+        pass_filenames: false
+        files: ^(setup\.py|data/__init__\.py)$
+
+      - id: sonar-properties-parse-smoke
+        name: sonar properties smoke validation
+        entry: python -c "from pathlib import Path; p=Path('sonar-project.properties'); assert p.exists(); txt=p.read_text(); assert 'sonar.projectKey' in txt and 'sonar.sources' in txt"
+        language: system
+        pass_filenames: false
+        files: ^sonar-project\.properties$

@@ -1,0 +1,175 @@
+{
+  "dataset": "kwanzacontrol_enterprise_users",
+  "version": "1.0.0",
+  "environment": "enterprise_fixture",
+  "generated_at": "2026-05-10T00:00:00Z",
+  "description": "Enterprise multi-tenant user dataset for IAM, RBAC, UEBA, fraud detection and CFO governance validation.",
+  "metadata": {
+    "platform": "KwanzaControl",
+    "security_model": "ZeroTrust",
+    "authentication": "JWT + MFA",
+    "authorization": "RBAC + ABAC",
+    "multi_tenant": true,
+    "compliance": [
+      "ISO27001",
+      "SOC2",
+      "GDPR"
+    ]
+  },
+  "users": [
+    {
+      "user_id": "usr-000001",
+      "tenant_id": "tenant_luanda_001",
+      "company_name": "Alpha Holdings",
+      "full_name": "João Manuel",
+      "email": "joao.manuel@alphaholdings.ao",
+      "role": "admin",
+      "department": "finance",
+      "status": "active",
+      "mfa_enabled": true,
+      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$examplehash1",
+      "last_login": "2026-05-10T07:45:00Z",
+      "login_count": 542,
+      "risk_score": 0.12,
+      "device_trust_score": 0.91,
+      "allowed_regions": ["Luanda"],
+      "permissions": [
+        "read_financials",
+        "write_financials",
+        "approve_transactions",
+        "view_dashboards",
+        "manage_users"
+      ],
+      "access_patterns": {
+        "typical_login_hours": "08:00-18:00",
+        "avg_session_duration_min": 45
+      },
+      "security_flags": {
+        "suspicious_activity": false,
+        "account_compromised": false
+      }
+    },
+    {
+      "user_id": "usr-000002",
+      "tenant_id": "tenant_benguela_002",
+      "company_name": "Beta Logistics",
+      "full_name": "Maria Pedro",
+      "email": "maria.pedro@betalogs.ao",
+      "role": "manager",
+      "department": "operations",
+      "status": "active",
+      "mfa_enabled": true,
+      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$examplehash2",
+      "last_login": "2026-05-10T06:20:00Z",
+      "login_count": 312,
+      "risk_score": 0.28,
+      "device_trust_score": 0.87,
+      "allowed_regions": ["Benguela", "Luanda"],
+      "permissions": [
+        "read_operations",
+        "approve_shipments",
+        "view_reports"
+      ],
+      "access_patterns": {
+        "typical_login_hours": "07:00-17:00",
+        "avg_session_duration_min": 60
+      },
+      "security_flags": {
+        "suspicious_activity": false,
+        "account_compromised": false
+      }
+    },
+    {
+      "user_id": "usr-000003",
+      "tenant_id": "tenant_huambo_003",
+      "company_name": "Gamma Foods",
+      "full_name": "Carlos António",
+      "email": "carlos.antonio@gammafoods.ao",
+      "role": "cfo",
+      "department": "finance",
+      "status": "active",
+      "mfa_enabled": true,
+      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$examplehash3",
+      "last_login": "2026-05-10T05:10:00Z",
+      "login_count": 890,
+      "risk_score": 0.18,
+      "device_trust_score": 0.93,
+      "allowed_regions": ["Huambo"],
+      "permissions": [
+        "read_financials",
+        "approve_budget",
+        "view_forecasts",
+        "override_alerts"
+      ],
+      "access_patterns": {
+        "typical_login_hours": "08:00-19:00",
+        "avg_session_duration_min": 120
+      },
+      "security_flags": {
+        "suspicious_activity": false,
+        "account_compromised": false
+      }
+    },
+    {
+      "user_id": "usr-000004",
+      "tenant_id": "tenant_lobito_004",
+      "company_name": "Delta Infra",
+      "full_name": "Ana Paulo",
+      "email": "ana.paulo@deltainfra.ao",
+      "role": "government_admin",
+      "department": "projects",
+      "status": "active",
+      "mfa_enabled": true,
+      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$examplehash4",
+      "last_login": "2026-05-10T03:55:00Z",
+      "login_count": 120,
+      "risk_score": 0.35,
+      "device_trust_score": 0.78,
+      "allowed_regions": ["Lobito"],
+      "permissions": [
+        "read_budget",
+        "allocate_funds",
+        "view_kpis"
+      ],
+      "access_patterns": {
+        "typical_login_hours": "09:00-17:00",
+        "avg_session_duration_min": 30
+      },
+      "security_flags": {
+        "suspicious_activity": false,
+        "account_compromised": false
+      }
+    },
+    {
+      "user_id": "usr-000005",
+      "tenant_id": "tenant_namibe_005",
+      "company_name": "Sigma Telecom",
+      "full_name": "Rui Domingos",
+      "email": "rui.domingos@sigmatelecom.ao",
+      "role": "system",
+      "department": "infrastructure",
+      "status": "active",
+      "mfa_enabled": false,
+      "password_hash": "$argon2id$v=19$m=65536,t=3,p=4$examplehash5",
+      "last_login": "2026-05-10T02:30:00Z",
+      "login_count": 9999,
+      "risk_score": 0.62,
+      "device_trust_score": 0.55,
+      "allowed_regions": ["Namibe"],
+      "permissions": [
+        "stream_processing",
+        "monitor_systems",
+        "restart_services"
+      ],
+      "access_patterns": {
+        "typical_login_hours": "00:00-23:59",
+        "avg_session_duration_min": 240
+      },
+      "security_flags": {
+        "suspicious_activity": true,
+        "account_compromised": false,
+        "notes": "Unusual high-frequency system access pattern"
+      }
+    }
+  ]
+}

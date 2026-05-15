@@ -1,76 +1,66 @@
-import pandas as pd
-import numpy as np
-from prophet import Prophet
-from sklearn.ensemble import RandomForestRegressor
+# models/cashflow_forecast.py
+"""
+Backward-compatible cashflow forecast model.
+
+Mantém compatibilidade com imports legados:
+
+    from models.cashflow_forecast import ...
+
+A implementação principal do domínio cashflow permanece em:
+
+    models.cashflow
+    models.forecasting.cashflow_ai
+"""
+
+from __future__ import annotations
+
+try:
+    from models.cashflow import *  # noqa: F401,F403
+except Exception as exc:
+    CASHFLOW_IMPORT_ERROR = exc
+else:
+    CASHFLOW_IMPORT_ERROR = None
 
 
-class CashflowForecastModel:
+try:
+    from models.forecasting.cashflow_ai import *  # noqa: F401,F403
+except Exception as exc:
+    CASHFLOW_AI_IMPORT_ERROR = exc
+else:
+    CASHFLOW_AI_IMPORT_ERROR = None
 
-    def __init__(self):
-        self.prophet_model = Prophet()
-        self.ml_model = RandomForestRegressor()
-        self.is_trained = False
 
-    # -------------------------
-    # PROPHET FORECAST
-    # -------------------------
-    def train_prophet(self, df):
-        self.prophet_model.fit(df)
+class CashflowForecastCompatibilityError(RuntimeError):
+    pass
 
-    def forecast_prophet(self, periods=7):
 
-        future = self.prophet_model.make_future_dataframe(
-            periods=periods
+def package_info() -> dict[str, str]:
+    return {
+        "package": "models.cashflow_forecast",
+        "purpose": "enterprise_backward_compatibility",
+        "primary_sources": "models.cashflow, models.forecasting.cashflow_ai",
+        "cashflow_import": "ok" if CASHFLOW_IMPORT_ERROR is None else repr(CASHFLOW_IMPORT_ERROR),
+        "cashflow_ai_import": "ok" if CASHFLOW_AI_IMPORT_ERROR is None else repr(CASHFLOW_AI_IMPORT_ERROR),
+        "status": "active"
+        if CASHFLOW_IMPORT_ERROR is None or CASHFLOW_AI_IMPORT_ERROR is None
+        else "degraded",
+    }
+
+
+def ensure_available() -> None:
+    if CASHFLOW_IMPORT_ERROR is not None and CASHFLOW_AI_IMPORT_ERROR is not None:
+        raise CashflowForecastCompatibilityError(
+            "Nenhuma implementação de cashflow forecast pôde ser importada. "
+            f"models.cashflow={CASHFLOW_IMPORT_ERROR!r}; "
+            f"models.forecasting.cashflow_ai={CASHFLOW_AI_IMPORT_ERROR!r}"
         )
 
-        forecast = self.prophet_model.predict(future)
 
-        return forecast[[
-            "ds",
-            "yhat",
-            "yhat_lower",
-            "yhat_upper"
-        ]]
-
-    # -------------------------
-    # MACHINE LEARNING
-    # -------------------------
-    def train_ml(self, X, y):
-        self.ml_model.fit(X, y)
-        self.is_trained = True
-
-    def predict_ml(self, X):
-
-        if not self.is_trained:
-            raise Exception(
-                "Modelo ML não treinado"
-            )
-
-        return self.ml_model.predict(X)
+ensure_available()
 
 
-# ---------------------------------
-# TESTE LOCAL
-# ---------------------------------
-if __name__ == "__main__":
-
-    df = pd.DataFrame({
-        "ds": pd.date_range(
-            "2024-01-01",
-            periods=30
-        ),
-        "y": np.random.randint(
-            1000,
-            5000,
-            30
-        )
-    })
-
-    model = CashflowForecastModel()
-
-    model.train_prophet(df)
-
-    forecast = model.forecast_prophet(7)
-
-    print("Cashflow Forecast:")
-    print(forecast.head())
+__all__ = [
+    name
+    for name in globals()
+    if not name.startswith("_")
+]

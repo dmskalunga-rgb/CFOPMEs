@@ -1,0 +1,442 @@
+# ==============================================================================
+# .gitignore
+# ------------------------------------------------------------------------------
+# Enterprise .gitignore for the data platform project.
+# Covers Python, data engineering artifacts, local secrets, logs, caches,
+# notebooks, build outputs, Docker, Terraform, IDEs, quality reports and
+# temporary runtime files.
+# ============================================================================== 
+
+
+# ==============================================================================
+# PYTHON - BYTECODE / CACHE
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.cache/
+*.cover
+*.py,cover
+.pybuilder/
+target/
+
+
+# ==============================================================================
+# PYTHON - PACKAGING / BUILD
+# ==============================================================================
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-wheel-metadata/
+*.whl
+
+
+# ==============================================================================
+# VIRTUAL ENVIRONMENTS
+# ==============================================================================
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.virtualenv/
+.python-version
+pipenv.lock
+Pipfile.lock
+poetry.lock
+pdm.lock
+.pdm-python
+.pdm-build/
+
+
+# ==============================================================================
+# ENVIRONMENT / SECRETS
+# ==============================================================================
+.env
+.env.*
+!.env.example
+!.env.template
+*.env
+*.local.env
+*.secret
+*.secrets
+secrets/
+.secret/
+.credentials/
+credentials/
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.kubeconfig
+kubeconfig
+service-account*.json
+*gcp-key*.json
+*aws-credentials*
+*azure-credentials*
+
+
+# ==============================================================================
+# LOGS / RUNTIME
+# ==============================================================================
+logs/
+log/
+*.log
+*.log.*
+*.out
+*.err
+*.pid
+*.pid.lock
+*.seed
+*.stackdump
+runtime/
+.run/
+run/
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+
+# ==============================================================================
+# LOCAL DATA / STORAGE / LAKEHOUSE ARTIFACTS
+# ==============================================================================
+storage/
+warehouse/
+data_lake/
+lakehouse/
+checkpoints/
+checkpoint/
+dead_letter/
+quarantine/
+backups/
+exports/
+imports/
+landing/
+bronze/
+silver/
+gold/
+raw/
+processed/
+curated/
+archive/
+archives/
+*.checkpoint
+*.crc
+_SUCCESS
+_committed_*
+_started_*
+_metadata
+_delta_log/
+.hoodie/
+*.parquet
+*.avro
+*.orc
+*.feather
+*.arrow
+*.csv
+*.tsv
+*.jsonl
+*.ndjson
+*.xlsx
+*.xls
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.db-wal
+*.db-shm
+
+
+# Keep sample fixtures if intentionally versioned
+!tests/fixtures/**
+!examples/**
+!samples/**
+!docs/**/*.csv
+!docs/**/*.json
+
+
+# ==============================================================================
+# QUALITY / VALIDATION / PROFILING OUTPUTS
+# ==============================================================================
+quality/reports/
+quality/audit/
+quality/dashboard/
+quality/evidence/
+quality/profiles/
+quality/metrics/
+reports/
+profiling_reports/
+validation_reports/
+audit_reports/
+coverage_reports/
+schema/observed/
+schema/baselines/generated/
+*.profile.json
+*.quality.json
+*.audit.json
+*.metrics.json
+*.dashboard.html
+*.evidence.json
+
+
+# ==============================================================================
+# NOTEBOOKS / JUPYTER
+# ==============================================================================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+.jupyter/
+.local/share/jupyter/
+nbconvert/
+notebook_output/
+
+
+# ==============================================================================
+# IDE / EDITORS
+# ==============================================================================
+.vscode/
+!.vscode/settings.example.json
+!.vscode/extensions.json
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.pydevproject
+.settings/
+.classpath
+.factorypath
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+
+# ==============================================================================
+# TYPE CHECKERS / LINTERS / FORMATTERS
+# ==============================================================================
+.dmypy.json
+dmypy.json
+.pyright/
+pyrightconfig.local.json
+ruff_cache/
+.black_cache/
+.isort.cfg.local
+
+
+# ==============================================================================
+# TESTING / LOAD TESTING
+# ==============================================================================
+.junit/
+junit.xml
+junit-*.xml
+test-results/
+test_reports/
+load-test-results/
+locust_stats*.csv
+*.prof
+*.profile
+.profraw
+
+
+# ==============================================================================
+# DOCKER / CONTAINERS
+# ==============================================================================
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
+.dockerignore.local
+container-data/
+volumes/
+postgres-data/
+redis-data/
+kafka-data/
+zookeeper-data/
+minio-data/
+prometheus-data/
+grafana-data/
+
+
+# ==============================================================================
+# KUBERNETES / HELM
+# ==============================================================================
+*.kubeconfig
+.kube/
+helm/values.local.yaml
+helm/values.secret.yaml
+helm/*/charts/
+helm/*/tmpcharts/
+*.tgz
+
+
+# ==============================================================================
+# TERRAFORM / INFRASTRUCTURE
+# ==============================================================================
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terragrunt-cache/
+
+
+# ==============================================================================
+# CLOUD / SERVERLESS
+# ==============================================================================
+.aws-sam/
+.serverless/
+.chalice/
+.gcloud/
+.azure/
+
+
+# ==============================================================================
+# FRONTEND / DOCS ARTIFACTS IF PRESENT
+# ==============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next/
+.nuxt/
+.svelte-kit/
+site/
+public/build/
+mkdocs_build/
+
+
+# ==============================================================================
+# DATABASE / MIGRATION LOCAL ARTIFACTS
+# ==============================================================================
+alembic.ini.local
+migrations/.cache/
+*.dump
+*.sql.gz
+*.bak
+*.backup
+
+
+# ==============================================================================
+# AI / VECTOR STORES / MODEL ARTIFACTS
+# ==============================================================================
+vector_store/
+embeddings/
+models/
+model_cache/
+.llama_index/
+.chromadb/
+chroma/
+faiss_index/
+*.faiss
+*.index
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.pickle
+joblib_cache/
+*.joblib
+
+
+# ==============================================================================
+# OS / ARCHIVE / MISC
+# ==============================================================================
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+*.iso
+*.dmg
+*.exe
+*.msi
+
+
+# ==============================================================================
+# ENTERPRISE LOCAL OVERRIDES
+# ==============================================================================
+config/local/
+config/secrets/
+config/*.local.yaml
+config/*.local.yml
+config/*.local.json
+config/*.secret.yaml
+config/*.secret.yml
+config/*.secret.json
+policies/local/
+connectors/local/
+tenants/local/
+
+
+# ==============================================================================
+# KEEPERS
+# ==============================================================================
+!.gitkeep
+!**/.gitkeep
+!README.md
+!LICENSE
+!pyproject.toml
+!setup.py
+!requirements.txt
+!requirements-dev.txt

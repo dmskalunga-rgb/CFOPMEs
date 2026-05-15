@@ -1,0 +1,490 @@
+# ==============================================================================
+# ruff.toml
+# ------------------------------------------------------------------------------
+# Enterprise Ruff configuration for the data platform.
+#
+# Usage:
+#   ruff check .
+#   ruff check . --fix
+#   ruff format .
+#
+# This file is intentionally standalone so CI/CD, IDEs and pre-commit can all
+# consume the same linting/formatting baseline without requiring pyproject.toml.
+# ==============================================================================
+
+
+# ==============================================================================
+# GLOBAL SETTINGS
+# ==============================================================================
+
+target-version = "py310"
+line-length = 100
+indent-width = 4
+src = ["data", "tests"]
+fix = true
+show-fixes = true
+respect-gitignore = true
+preview = false
+
+extend-exclude = [
+  ".git",
+  ".hg",
+  ".svn",
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".mypy_cache",
+  ".nox",
+  ".pytest_cache",
+  ".ruff_cache",
+  ".tox",
+  ".venv",
+  "venv",
+  "env",
+  "ENV",
+  "build",
+  "dist",
+  "htmlcov",
+  "site",
+  "docs/site",
+  "node_modules",
+  "storage",
+  "warehouse",
+  "data_lake",
+  "lakehouse",
+  "checkpoints",
+  "dead_letter",
+  "quarantine",
+  "backups",
+  "exports",
+  "imports",
+  "raw",
+  "processed",
+  "curated",
+  "archive",
+  "logs",
+  "tmp",
+  "temp",
+  "generated",
+  "vendor",
+  "migrations/versions",
+]
+
+
+# ==============================================================================
+# FORMATTER
+# ==============================================================================
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = 100
+
+
+# ==============================================================================
+# LINT RULE SELECTION
+# ==============================================================================
+
+[lint]
+select = [
+  # pycodestyle
+  "E",
+  "W",
+
+  # Pyflakes
+  "F",
+
+  # pyupgrade
+  "UP",
+
+  # flake8-builtins
+  "A",
+
+  # flake8-bugbear
+  "B",
+
+  # flake8-blind-except
+  "BLE",
+
+  # flake8-comprehensions
+  "C4",
+
+  # mccabe complexity
+  "C90",
+
+  # flake8-commas
+  "COM",
+
+  # flake8-datetimez
+  "DTZ",
+
+  # flake8-errmsg
+  "EM",
+
+  # eradicate commented-out code
+  "ERA",
+
+  # flake8-annotations future imports
+  "FA",
+
+  # flake8-boolean-trap
+  "FBT",
+
+  # flake8-fixme
+  "FIX",
+
+  # flake8-logging-format
+  "G",
+
+  # isort
+  "I",
+
+  # flake8-import-conventions
+  "ICN",
+
+  # flake8-implicit-str-concat
+  "ISC",
+
+  # pep8-naming
+  "N",
+
+  # pandas-vet
+  "PD",
+
+  # Perflint
+  "PERF",
+
+  # flake8-pie
+  "PIE",
+
+  # Pylint
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+
+  # flake8-pytest-style
+  "PT",
+
+  # pathlib
+  "PTH",
+
+  # flake8-quotes
+  "Q",
+
+  # flake8-return
+  "RET",
+
+  # Ruff-specific
+  "RUF",
+
+  # flake8-bandit security
+  "S",
+
+  # flake8-simplify
+  "SIM",
+
+  # debugger / print checks
+  "T10",
+  "T20",
+
+  # type-checking imports
+  "TCH",
+
+  # TODO policy
+  "TD",
+
+  # tryceratops
+  "TRY",
+
+  # flake8-2020
+  "YTT",
+]
+
+ignore = [
+  # Formatter compatibility
+  "COM812",
+  "ISC001",
+
+  # Allow asserts in production modules where used for defensive internal invariants;
+  # tests also override this explicitly.
+  "S101",
+
+  # Avoid noisy exception-message micro-rules in enterprise service code.
+  "TRY003",
+  "EM101",
+  "EM102",
+
+  # Enterprise orchestration/checker modules often have rich config dataclasses.
+  "PLR0913",
+
+  # Enterprise engines naturally have branching; still controlled by mccabe.
+  "PLR0912",
+  "PLR0915",
+
+  # Constants and thresholds are common in data quality code.
+  "PLR2004",
+
+  # TODO ownership is enforced by review/Jira, not by Ruff in this repo.
+  "TD002",
+  "TD003",
+  "FIX002",
+
+  # Boolean arguments are acceptable in dataclass configs and public APIs.
+  "FBT001",
+  "FBT002",
+
+  # Pandas inplace rule can be noisy for exploratory adapters; prefer review.
+  "PD002",
+]
+
+fixable = ["ALL"]
+unfixable = [
+  # Avoid automatic deletion of intentionally parked/commented snippets.
+  "ERA",
+
+  # Avoid auto-removing print in CLIs/smoke scripts without review.
+  "T201",
+]
+
+# Enterprise defaults.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+task-tags = ["TODO", "FIXME", "HACK", "XXX", "BUG", "SECURITY", "TECHDEBT"]
+
+
+# ==============================================================================
+# PER-FILE OVERRIDES
+# ==============================================================================
+
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+  "S101",
+  "ARG001",
+  "ARG002",
+  "PLR2004",
+  "FBT001",
+  "FBT002",
+  "ANN",
+]
+
+"**/__init__.py" = [
+  "F401",
+  "F403",
+  "PLC0414",
+]
+
+"setup.py" = [
+  "T201",
+  "S603",
+  "S607",
+  "PTH123",
+]
+
+"data/**/cli.py" = [
+  "T201",
+  "BLE001",
+]
+
+"data/**/scripts/*.py" = [
+  "T201",
+  "S603",
+  "S607",
+]
+
+"data/**/migrations/*.py" = [
+  "E501",
+  "N806",
+  "ARG001",
+]
+
+"docs/**/*.py" = [
+  "T201",
+  "S101",
+]
+
+"examples/**/*.py" = [
+  "T201",
+  "S101",
+  "PLR2004",
+]
+
+"samples/**/*.py" = [
+  "T201",
+  "S101",
+  "PLR2004",
+]
+
+"data/quality/**/*.py" = [
+  # Data-quality engines often expose JSON-friendly methods and rich datamodels.
+  "PLR0913",
+  "PLR0912",
+  "PLR0915",
+]
+
+
+# ==============================================================================
+# ISORT
+# ==============================================================================
+
+[lint.isort]
+known-first-party = ["data"]
+known-third-party = [
+  "pandas",
+  "numpy",
+  "pyarrow",
+  "sqlalchemy",
+  "redis",
+  "confluent_kafka",
+  "fastapi",
+  "pydantic",
+  "prometheus_client",
+  "opentelemetry",
+  "openai",
+  "sklearn",
+]
+combine-as-imports = true
+force-sort-within-sections = false
+split-on-trailing-comma = true
+lines-after-imports = 2
+section-order = [
+  "future",
+  "standard-library",
+  "third-party",
+  "first-party",
+  "local-folder",
+]
+
+
+# ==============================================================================
+# PYCODESTYLE / MCCABE / PYLINT
+# ==============================================================================
+
+[lint.pycodestyle]
+max-doc-length = 120
+ignore-overlong-task-comments = true
+
+[lint.mccabe]
+max-complexity = 18
+
+[lint.pylint]
+max-args = 12
+max-branches = 18
+max-returns = 8
+max-statements = 80
+max-public-methods = 30
+max-bool-expr = 8
+
+
+# ==============================================================================
+# DOCSTRINGS
+# ==============================================================================
+
+[lint.pydocstyle]
+convention = "google"
+ignore-decorators = ["typing.overload"]
+
+
+# ==============================================================================
+# NAMING
+# ==============================================================================
+
+[lint.pep8-naming]
+classmethod-decorators = [
+  "classmethod",
+  "pydantic.validator",
+  "pydantic.field_validator",
+]
+staticmethod-decorators = ["staticmethod"]
+
+
+# ==============================================================================
+# FLAKE8-BANDIT SECURITY
+# ==============================================================================
+
+[lint.flake8-bandit]
+check-typed-exception = true
+
+
+# ==============================================================================
+# FLAKE8-BOOLEAN-TRAP
+# ==============================================================================
+
+[lint.flake8-boolean-trap]
+extend-allowed-calls = [
+  "pydantic.Field",
+  "dataclasses.field",
+  "fastapi.Query",
+  "fastapi.Path",
+  "fastapi.Body",
+]
+
+
+# ==============================================================================
+# FLAKE8-IMPORT-CONVENTIONS
+# ==============================================================================
+
+[lint.flake8-import-conventions]
+[lint.flake8-import-conventions.aliases]
+pandas = "pd"
+numpy = "np"
+pyarrow = "pa"
+matplotlib = "mpl"
+"matplotlib.pyplot" = "plt"
+
+
+# ==============================================================================
+# FLAKE8-PYTEST-STYLE
+# ==============================================================================
+
+[lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+parametrize-names-type = "tuple"
+parametrize-values-type = "tuple"
+parametrize-values-row-type = "tuple"
+
+
+# ==============================================================================
+# FLAKE8-QUOTES
+# ==============================================================================
+
+[lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
+avoid-escape = true
+
+
+# ==============================================================================
+# FLAKE8-TYPE-CHECKING
+# ==============================================================================
+
+[lint.flake8-type-checking]
+strict = false
+runtime-evaluated-base-classes = [
+  "pydantic.BaseModel",
+]
+runtime-evaluated-decorators = [
+  "pydantic.validate_call",
+  "pydantic.field_validator",
+  "pydantic.model_validator",
+]
+
+
+# ==============================================================================
+# PYUPGRADE
+# ==============================================================================
+
+[lint.pyupgrade]
+keep-runtime-typing = false
+
+
+# ==============================================================================
+# RUFF-SPECIFIC
+# ==============================================================================
+
+[lint.ruff]
+parenthesize-tuple-in-subscript = true

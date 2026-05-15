@@ -1,22 +1,397 @@
-# Python cache
-__pycache__/
-*.pyc
+# =========================================================
+# kwanza-ai-core/.gitignore
+# Enterprise-grade Git Ignore Strategy
+# =========================================================
 
-# Virtual environment
-venv/
-env/
-
-# Logs
-*.log
-
-# OS files
+# =========================================================
+# Operating System Files
+# =========================================================
 .DS_Store
 Thumbs.db
+desktop.ini
+ehthumbs.db
+Icon?
+._*
+.Spotlight-V100
+.Trashes
 
-# ML binaries (evitar GitHub errors)
-*.dll
+# =========================================================
+# IDE / Editor
+# =========================================================
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+*.swn
+
+# VSCode Workspace
+*.code-workspace
+
+# JetBrains
+out/
+
+# =========================================================
+# Python Cache / Compiled
+# =========================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# C Extensions
 *.so
 
-# Models (opcional se forem grandes)
-*.pkl
+# =========================================================
+# Build / Distribution
+# =========================================================
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================================================
+# Virtual Environments
+# =========================================================
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Poetry
+poetry.lock
+
+# Pipenv
+Pipfile.lock
+
+# =========================================================
+# Logs
+# =========================================================
+logs/
+*.log
+*.out
+*.err
+*.stackdump
+
+# Runtime Logs
+gunicorn.log
+uvicorn.log
+celerybeat-schedule
+
+# =========================================================
+# Runtime / Temp
+# =========================================================
+tmp/
+temp/
+*.tmp
+*.temp
+*.pid
+*.seed
+*.pid.lock
+
+# =========================================================
+# Secrets / Credentials
+# =========================================================
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+*.jks
+
+secrets/
+credentials/
+vault/
+tokens/
+
+# =========================================================
+# Databases
+# =========================================================
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# PostgreSQL dumps
+*.sql
+*.dump
+
+# =========================================================
+# Cache
+# =========================================================
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+coverage/
+htmlcov/
+
+# =========================================================
+# Jupyter / Notebook
+# =========================================================
+.ipynb_checkpoints
+
+# =========================================================
+# Machine Learning / AI
+# =========================================================
+
+# Models
+models/
+checkpoints/
+artifacts/
+weights/
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+*.ckpt
 *.joblib
+*.pkl
+*.pickle
+*.pb
+*.tflite
+
+# TensorBoard
+runs/
+tensorboard/
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Datasets
+datasets/
+data/raw/
+data/intermediate/
+data/processed/
+
+# Feature Store Cache
+feature_store_cache/
+
+# =========================================================
+# Distributed Processing
+# =========================================================
+.sparkStaging/
+metastore_db/
+
+# Ray
+ray_results/
+
+# Dask
+dask-worker-space/
+
+# =========================================================
+# Observability / Monitoring
+# =========================================================
+traces/
+metrics/
+profiles/
+audit/
+observability/
+
+# Prometheus
+prometheus_data/
+
+# Grafana
+grafana_data/
+
+# =========================================================
+# Docker / Containers
+# =========================================================
+.docker/
+docker-data/
+*.tar
+
+# Docker Compose Overrides
+docker-compose.override.yml
+
+# =========================================================
+# Kubernetes / Helm
+# =========================================================
+*.kubeconfig
+.kube/
+helm-secrets.yaml
+
+# =========================================================
+# Terraform / Infrastructure
+# =========================================================
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+terraform.tfvars
+terraform.rc
+
+# =========================================================
+# Serverless / Cloud
+# =========================================================
+.serverless/
+.aws-sam/
+
+# =========================================================
+# Testing
+# =========================================================
+.pybuilder/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Hypothesis
+.hypothesis/
+
+# =========================================================
+# Security / Scanners
+# =========================================================
+bandit-report.json
+safety-report.json
+
+# =========================================================
+# Package Managers
+# =========================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================================================
+# Frontend Build
+# =========================================================
+.next/
+.nuxt/
+dist-frontend/
+coverage-frontend/
+
+# =========================================================
+# Static Analysis
+# =========================================================
+.pyre/
+.dmypy.json
+dmypy.json
+
+# =========================================================
+# Documentation Build
+# =========================================================
+site/
+docs/_build/
+
+# =========================================================
+# Backup / Old Files
+# =========================================================
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# =========================================================
+# CI/CD
+# =========================================================
+.github/workflows/*.secrets
+.gitlab-ci-local/
+
+# =========================================================
+# OS Generated
+# =========================================================
+*.lnk
+
+# =========================================================
+# Local Configurations
+# =========================================================
+local/
+config.local.*
+settings.local.*
+
+# =========================================================
+# Enterprise Governance
+# =========================================================
+compliance-reports/
+governance-cache/
+lineage-cache/
+metadata-cache/
+
+# =========================================================
+# Edge / Runtime Artifacts
+# =========================================================
+edge-cache/
+runtime-cache/
+executor-cache/
+
+# =========================================================
+# Profiling / Benchmarking
+# =========================================================
+benchmarks/
+*.prof
+*.lprof
+
+# =========================================================
+# API Gateway / Gateway Cache
+# =========================================================
+gateway-cache/
+
+# =========================================================
+# Message Queues
+# =========================================================
+kafka-logs/
+rabbitmq-data/
+
+# =========================================================
+# Binary / Archives
+# =========================================================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.gz
+*.bz2
+
+# =========================================================
+# Enterprise AI Temporary Files
+# =========================================================
+prompt-cache/
+embedding-cache/
+vector-cache/
+rag-cache/
+semantic-cache/
+
+# =========================================================
+# Generated Documentation
+# =========================================================
+generated-docs/
+generated-reports/
+
+# =========================================================
+# Ignore All Hidden Local Environment Folders
+# =========================================================
+.local/
+.private/
+
+# =========================================================
+# END
+# =========================================================

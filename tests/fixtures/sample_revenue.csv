@@ -1,0 +1,30 @@
+tenant_id,company_name,date,product_line,region,revenue,currency,transactions_count,avg_ticket_value,growth_rate,seasonality_index,anomaly_score,risk_flag
+tenant_luanda_001,Alpha Holdings,2026-05-01,Retail Electronics,Luanda,15000000,AOA,1200,12500,0.05,1.02,0.10,0
+tenant_luanda_001,Alpha Holdings,2026-05-02,Retail Electronics,Luanda,15200000,AOA,1220,12450,0.06,1.01,0.11,0
+tenant_luanda_001,Alpha Holdings,2026-05-03,Retail Electronics,Luanda,14800000,AOA,1180,-3000,0.04,1.00,0.85,1
+tenant_luanda_001,Alpha Holdings,2026-05-04,Retail Electronics,Luanda,15100000,AOA,1210,12480,0.05,1.03,0.12,0
+tenant_luanda_001,Alpha Holdings,2026-05-05,Retail Electronics,Luanda,15300000,AOA,1235,12390,0.07,1.04,0.10,0
+
+tenant_benguela_002,Beta Logistics,2026-05-01,Logistics Services,Benguela,8200000,AOA,540,15180,0.03,0.98,0.20,0
+tenant_benguela_002,Beta Logistics,2026-05-02,Logistics Services,Benguela,8300000,AOA,550,15090,0.04,0.99,0.22,0
+tenant_benguela_002,Beta Logistics,2026-05-03,Logistics Services,Benguela,7900000,AOA,520,15200,-0.12,0.97,0.88,1
+tenant_benguela_002,Beta Logistics,2026-05-04,Logistics Services,Benguela,8400000,AOA,560,15000,0.05,1.00,0.18,0
+tenant_benguela_002,Beta Logistics,2026-05-05,Logistics Services,Benguela,8450000,AOA,565,14955,0.06,1.01,0.17,0
+
+tenant_huambo_003,Gamma Foods,2026-05-01,Food Distribution,Huambo,5400000,AOA,420,12850,0.02,1.00,0.25,0
+tenant_huambo_003,Gamma Foods,2026-05-02,Food Distribution,Huambo,5350000,AOA,415,12900,0.01,0.99,0.28,0
+tenant_huambo_003,Gamma Foods,2026-05-03,Food Distribution,Huambo,5100000,AOA,400,-1200,-0.18,0.95,0.91,1
+tenant_huambo_003,Gamma Foods,2026-05-04,Food Distribution,Huambo,5500000,AOA,430,12790,0.03,1.01,0.24,0
+tenant_huambo_003,Gamma Foods,2026-05-05,Food Distribution,Huambo,5600000,AOA,435,12870,0.04,1.02,0.23,0
+
+tenant_lobito_004,Delta Infra,2026-05-01,Construction,Lobito,20000000,AOA,300,66666,0.08,1.05,0.14,0
+tenant_lobito_004,Delta Infra,2026-05-02,Construction,Lobito,21000000,AOA,310,67741,0.10,1.06,0.13,0
+tenant_lobito_004,Delta Infra,2026-05-03,Construction,Lobito,19500000,AOA,290,-5000,-0.20,0.90,0.93,1
+tenant_lobito_004,Delta Infra,2026-05-04,Construction,Lobito,21500000,AOA,320,67187,0.12,1.07,0.12,0
+tenant_lobito_004,Delta Infra,2026-05-05,Construction,Lobito,22000000,AOA,330,66666,0.14,1.08,0.11,0
+
+tenant_namibe_005,Sigma Telecom,2026-05-01,Telecom,Namibe,12000000,AOA,900,13333,0.03,1.01,0.19,0
+tenant_namibe_005,Sigma Telecom,2026-05-02,Telecom,Namibe,11800000,AOA,880,13409,0.02,1.00,0.21,0
+tenant_namibe_005,Sigma Telecom,2026-05-03,Telecom,Namibe,11000000,AOA,800,-8000,-0.25,0.92,0.96,1
+tenant_namibe_005,Sigma Telecom,2026-05-04,Telecom,Namibe,11900000,AOA,890,13370,0.03,1.02,0.18,0
+tenant_namibe_005,Sigma Telecom,2026-05-05,Telecom,Namibe,12100000,AOA,910,13296,0.04,1.03,0.17,0

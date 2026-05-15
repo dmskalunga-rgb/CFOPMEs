@@ -1,0 +1,604 @@
+# =========================================================
+# TESTS / UNIT / test_fraud_model.py
+# KWANZACONTROL ENTERPRISE CFO AI
+# Enterprise Fraud Detection Test Suite
+# =========================================================
+
+from __future__ import annotations
+
+import json
+import math
+import os
+import random
+import shutil
+import time
+import unittest
+
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, Mapping
+
+import numpy as np
+import pandas as pd
+
+from sklearn.ensemble import IsolationForest
+from sklearn.preprocessing import StandardScaler
+
+
+# =========================================================
+# JSON SAFE HELPERS
+# =========================================================
+
+def json_safe(value: Any) -> Any:
+    """Convert NumPy/Pandas values to native JSON-safe Python values."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, np.bool_):
+        return bool(value)
+
+    if isinstance(value, np.integer):
+        return int(value)
+
+    if isinstance(value, np.floating):
+        number = float(value)
+        return None if not math.isfinite(number) else number
+
+    if isinstance(value, np.ndarray):
+        return [json_safe(item) for item in value.tolist()]
+
+    if isinstance(value, float):
+        return None if not math.isfinite(value) else float(value)
+
+    if isinstance(value, bool):
+        return bool(value)
+
+    if isinstance(value, int):
+        return int(value)
+
+    if isinstance(value, str):
+        return value
+
+    if isinstance(value, Mapping):
+        return {
+            str(json_safe(key)): json_safe(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [json_safe(item) for item in value]
+
+    if hasattr(value, "item"):
+        try:
+            return json_safe(value.item())
+        except Exception:
+            pass
+
+    return value
+
+
+def safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return float(default)
+
+    if not math.isfinite(number):
+        return float(default)
+
+    return float(number)
+
+
+# =========================================================
+# ENTERPRISE FRAUD RESULT
+# =========================================================
+
+@dataclass
+class FraudResult:
+    tenant_id: str
+    transaction_id: str
+    fraud_score: float
+    is_fraud: bool
+    confidence: float
+    model_version: str
+    created_at: float
+
+    def __post_init__(self) -> None:
+        self.tenant_id = str(self.tenant_id)
+        self.transaction_id = str(self.transaction_id)
+        self.fraud_score = float(safe_float(self.fraud_score))
+        self.is_fraud = bool(self.is_fraud)
+        self.confidence = max(
+            0.0,
+            min(1.0, float(safe_float(self.confidence))),
+        )
+        self.model_version = str(self.model_version)
+        self.created_at = float(safe_float(self.created_at, time.time()))
+
+
+# =========================================================
+# ENTERPRISE FRAUD MODEL
+# =========================================================
+
+class EnterpriseFraudModel:
+    REQUIRED_FEATURES = (
+        "amount",
+        "velocity",
+        "device_score",
+        "geo_score",
+    )
+
+    def __init__(
+        self,
+        contamination: float = 0.05,
+        storage_dir: str | Path = "fraud_test_storage",
+    ) -> None:
+        self.contamination = float(contamination)
+        self.scaler = StandardScaler()
+        self.model = IsolationForest(
+            contamination=self.contamination,
+            random_state=42,
+        )
+        self.model_version = "fraud-enterprise-v1"
+        self.storage_dir = Path(storage_dir)
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        self._trained = False
+
+    # =====================================================
+    # TRAIN MODEL
+    # =====================================================
+
+    def train(self, dataframe: pd.DataFrame) -> None:
+        if dataframe is None or dataframe.empty:
+            raise ValueError("Training dataframe cannot be empty.")
+
+        missing = [
+            feature
+            for feature in self.REQUIRED_FEATURES
+            if feature not in dataframe.columns
+        ]
+
+        if missing:
+            raise ValueError(
+                f"Missing required training features: {missing}"
+            )
+
+        features = dataframe.loc[:, list(self.REQUIRED_FEATURES)].copy()
+
+        for column in self.REQUIRED_FEATURES:
+            features[column] = pd.to_numeric(
+                features[column],
+                errors="coerce",
+            )
+
+        features = features.replace([np.inf, -np.inf], np.nan).dropna()
+
+        if features.empty:
+            raise ValueError(
+                "Training dataframe has no valid numeric feature rows."
+            )
+
+        scaled = self.scaler.fit_transform(features)
+        self.model.fit(scaled)
+        self._trained = True
+
+    # =====================================================
+    # PREDICT FRAUD
+    # =====================================================
+
+    def predict(
+        self,
+        tenant_id: str,
+        payload: Dict[str, Any],
+    ) -> FraudResult:
+        if not self._trained:
+            raise RuntimeError("Model must be trained before prediction.")
+
+        self._validate_payload(payload)
+
+        # Enterprise correction:
+        # Use DataFrame with the same feature names used during fit().
+        # This removes sklearn warning:
+        # "X does not have valid feature names, but StandardScaler was fitted with feature names"
+        vector = pd.DataFrame(
+            [
+                {
+                    "amount": safe_float(payload["amount"]),
+                    "velocity": safe_float(payload["velocity"]),
+                    "device_score": safe_float(payload["device_score"]),
+                    "geo_score": safe_float(payload["geo_score"]),
+                }
+            ],
+            columns=list(self.REQUIRED_FEATURES),
+        )
+
+        scaled = self.scaler.transform(vector)
+
+        prediction = int(self.model.predict(scaled)[0])
+
+        raw_score = float(self.model.score_samples(scaled)[0])
+
+        # IsolationForest returns higher values for more normal samples.
+        # We convert it to a positive fraud-risk style score.
+        fraud_score = float(abs(raw_score))
+
+        is_fraud = bool(prediction == -1)
+
+        confidence = self._calculate_confidence(
+            fraud_score=fraud_score,
+            is_fraud=is_fraud,
+        )
+
+        result = FraudResult(
+            tenant_id=str(tenant_id),
+            transaction_id=str(payload["transaction_id"]),
+            fraud_score=float(fraud_score),
+            is_fraud=bool(is_fraud),
+            confidence=float(confidence),
+            model_version=self.model_version,
+            created_at=float(time.time()),
+        )
+
+        self._persist(result)
+
+        return result
+
+    # =====================================================
+    # CONFIDENCE
+    # =====================================================
+
+    @staticmethod
+    def _calculate_confidence(
+        fraud_score: float,
+        is_fraud: bool,
+    ) -> float:
+        score = max(0.0, safe_float(fraud_score))
+
+        # Deterministic 0..1 confidence normalization.
+        confidence = score / (score + 1.0)
+
+        if is_fraud:
+            confidence = max(confidence, 0.50)
+
+        return max(0.0, min(1.0, float(confidence)))
+
+    # =====================================================
+    # VALIDATION
+    # =====================================================
+
+    def _validate_payload(
+        self,
+        payload: Dict[str, Any],
+    ) -> None:
+        if not isinstance(payload, dict):
+            raise TypeError("Payload must be a dictionary.")
+
+        required = ("transaction_id", *self.REQUIRED_FEATURES)
+
+        missing = [
+            field
+            for field in required
+            if field not in payload
+        ]
+
+        if missing:
+            raise ValueError(
+                f"Missing required payload fields: {missing}"
+            )
+
+        if not str(payload["transaction_id"]).strip():
+            raise ValueError("transaction_id cannot be empty.")
+
+        for feature in self.REQUIRED_FEATURES:
+            value = safe_float(payload[feature], default=float("nan"))
+
+            if not math.isfinite(value):
+                raise ValueError(
+                    f"Invalid numeric value for feature: {feature}"
+                )
+
+    # =====================================================
+    # SAVE RESULT
+    # =====================================================
+
+    def _persist(self, result: FraudResult) -> Path:
+        tenant_dir = self.storage_dir / str(result.tenant_id)
+        tenant_dir.mkdir(parents=True, exist_ok=True)
+
+        filename = f"{result.transaction_id}.json"
+        path = tenant_dir / filename
+
+        with path.open("w", encoding="utf-8") as file:
+            json.dump(
+                json_safe(asdict(result)),
+                file,
+                indent=2,
+                ensure_ascii=False,
+                allow_nan=False,
+            )
+
+        # Compatibility file for legacy tests that look directly in root.
+        legacy_path = self.storage_dir / filename
+        with legacy_path.open("w", encoding="utf-8") as file:
+            json.dump(
+                json_safe(asdict(result)),
+                file,
+                indent=2,
+                ensure_ascii=False,
+                allow_nan=False,
+            )
+
+        return path
+
+    # =====================================================
+    # HEALTH
+    # =====================================================
+
+    def health(self) -> Dict[str, Any]:
+        return {
+            "service": "enterprise_fraud_model",
+            "status": "healthy",
+            "model_version": self.model_version,
+            "enterprise_mode": True,
+            "trained": bool(self._trained),
+        }
+
+
+# =========================================================
+# TEST SUITE
+# =========================================================
+
+class TestEnterpriseFraudModel(unittest.TestCase):
+    # =====================================================
+    # SETUP
+    # =====================================================
+
+    def setUp(self) -> None:
+        self.model = EnterpriseFraudModel()
+
+        train_df = pd.DataFrame(
+            {
+                "amount": np.random.randint(100, 5000, 1000),
+                "velocity": np.random.randint(1, 20, 1000),
+                "device_score": np.random.uniform(0, 1, 1000),
+                "geo_score": np.random.uniform(0, 1, 1000),
+            }
+        )
+
+        self.model.train(train_df)
+
+    # =====================================================
+    # CLEANUP
+    # =====================================================
+
+    def tearDown(self) -> None:
+        if os.path.exists("fraud_test_storage"):
+            shutil.rmtree("fraud_test_storage")
+
+    # =====================================================
+    # TEST PREDICTION
+    # =====================================================
+
+    def test_prediction(self) -> None:
+        payload = {
+            "transaction_id": "txn-001",
+            "amount": 2500,
+            "velocity": 3,
+            "device_score": 0.20,
+            "geo_score": 0.10,
+        }
+
+        result = self.model.predict(
+            tenant_id="tenant-001",
+            payload=payload,
+        )
+
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result.is_fraud, bool)
+
+    # =====================================================
+    # TEST FRAUD SCORE
+    # =====================================================
+
+    def test_fraud_score(self) -> None:
+        payload = {
+            "transaction_id": "txn-002",
+            "amount": 999999,
+            "velocity": 50,
+            "device_score": 0.99,
+            "geo_score": 0.99,
+        }
+
+        result = self.model.predict(
+            tenant_id="tenant-002",
+            payload=payload,
+        )
+
+        self.assertGreater(result.fraud_score, 0)
+        self.assertIsInstance(result.fraud_score, float)
+
+    # =====================================================
+    # TEST STORAGE FILE
+    # =====================================================
+
+    def test_storage_file(self) -> None:
+        payload = {
+            "transaction_id": "txn-storage",
+            "amount": 1000,
+            "velocity": 2,
+            "device_score": 0.2,
+            "geo_score": 0.3,
+        }
+
+        result = self.model.predict(
+            tenant_id="tenant-storage",
+            payload=payload,
+        )
+
+        path = os.path.join(
+            "fraud_test_storage",
+            "txn-storage.json",
+        )
+
+        tenant_path = os.path.join(
+            "fraud_test_storage",
+            result.tenant_id,
+            "txn-storage.json",
+        )
+
+        self.assertTrue(os.path.exists(path))
+        self.assertTrue(os.path.exists(tenant_path))
+
+        with open(path, "r", encoding="utf-8") as file:
+            payload_json = json.load(file)
+
+        self.assertIsInstance(payload_json["is_fraud"], bool)
+
+    # =====================================================
+    # TEST MODEL HEALTH
+    # =====================================================
+
+    def test_health(self) -> None:
+        health = self.model.health()
+
+        self.assertEqual(
+            health["status"],
+            "healthy",
+        )
+
+        self.assertTrue(health["enterprise_mode"])
+        self.assertTrue(health["trained"])
+
+    # =====================================================
+    # TEST MULTI TENANT
+    # =====================================================
+
+    def test_multi_tenant_isolation(self) -> None:
+        payload_a = {
+            "transaction_id": "txn-a",
+            "amount": 200,
+            "velocity": 1,
+            "device_score": 0.1,
+            "geo_score": 0.1,
+        }
+
+        payload_b = {
+            "transaction_id": "txn-b",
+            "amount": 800000,
+            "velocity": 80,
+            "device_score": 0.95,
+            "geo_score": 0.99,
+        }
+
+        result_a = self.model.predict(
+            tenant_id="tenant-A",
+            payload=payload_a,
+        )
+
+        result_b = self.model.predict(
+            tenant_id="tenant-B",
+            payload=payload_b,
+        )
+
+        self.assertNotEqual(
+            result_a.fraud_score,
+            result_b.fraud_score,
+        )
+
+        self.assertTrue(
+            Path("fraud_test_storage/tenant-A/txn-a.json").exists()
+        )
+
+        self.assertTrue(
+            Path("fraud_test_storage/tenant-B/txn-b.json").exists()
+        )
+
+    # =====================================================
+    # TEST INVALID PAYLOAD
+    # =====================================================
+
+    def test_invalid_payload(self) -> None:
+        with self.assertRaises(Exception):
+            self.model.predict(
+                tenant_id="tenant-invalid",
+                payload={},
+            )
+
+    # =====================================================
+    # TEST RANDOM PAYLOADS
+    # =====================================================
+
+    def test_random_payloads(self) -> None:
+        for i in range(10):
+            payload = {
+                "transaction_id": f"txn-{i}",
+                "amount": random.randint(100, 100000),
+                "velocity": random.randint(1, 100),
+                "device_score": random.uniform(0, 1),
+                "geo_score": random.uniform(0, 1),
+            }
+
+            result = self.model.predict(
+                tenant_id="tenant-random",
+                payload=payload,
+            )
+
+            self.assertIsNotNone(result)
+            self.assertIsInstance(result.is_fraud, bool)
+            self.assertTrue(0 <= result.confidence <= 1)
+
+    # =====================================================
+    # TEST MODEL VERSION
+    # =====================================================
+
+    def test_model_version(self) -> None:
+        self.assertEqual(
+            self.model.model_version,
+            "fraud-enterprise-v1",
+        )
+
+    # =====================================================
+    # TEST CONFIDENCE RANGE
+    # =====================================================
+
+    def test_confidence_range(self) -> None:
+        payload = {
+            "transaction_id": "txn-confidence",
+            "amount": 4500,
+            "velocity": 10,
+            "device_score": 0.5,
+            "geo_score": 0.4,
+        }
+
+        result = self.model.predict(
+            tenant_id="tenant-confidence",
+            payload=payload,
+        )
+
+        self.assertTrue(
+            0 <= result.confidence <= 1,
+        )
+
+        self.assertIsInstance(result.confidence, float)
+
+
+# =========================================================
+# MAIN
+# =========================================================
+
+if __name__ == "__main__":
+    print(
+        """
+=========================================================
+KWANZACONTROL CFO AI
+ENTERPRISE FRAUD MODEL TEST SUITE
+=========================================================
+
+Running enterprise fraud detection tests...
+
+=========================================================
+"""
+    )
+
+    unittest.main(verbosity=2)

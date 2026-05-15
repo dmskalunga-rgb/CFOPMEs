@@ -1,0 +1,241 @@
+{
+  "fixture": "kwanzacontrol_enterprise_sample_anomalies",
+  "version": "1.0.0",
+  "environment": "enterprise-production",
+  "generated_at": "2026-05-10T00:00:00Z",
+  "description": "Enterprise fixture dataset for AI anomaly detection, UEBA, realtime fraud monitoring and CFO analytics validation.",
+  "metadata": {
+    "platform": "KwanzaControl",
+    "module": "AI + UEBA + CFO",
+    "multi_tenant": true,
+    "streaming_enabled": true,
+    "governance_enabled": true,
+    "supported_engines": [
+      "fraud_detection",
+      "ueba_engine",
+      "cashflow_forecast",
+      "realtime_monitoring",
+      "expense_detection",
+      "government_kpi_engine"
+    ]
+  },
+  "fixtures": [
+    {
+      "fixture_id": "fixture-000001",
+      "tenant_id": "tenant_luanda_alpha",
+      "company_name": "Alpha Holdings",
+      "industry": "Retail",
+      "event_type": "fraud_detection",
+      "severity": "critical",
+      "risk_score": 0.99,
+      "transaction_amount": 25000000,
+      "currency": "AOA",
+      "transaction_type": "wire_transfer",
+      "transaction_status": "flagged",
+      "user_id": "finance_admin_01",
+      "user_role": "administrator",
+      "department": "finance",
+      "timestamp": "2026-05-10T09:00:00Z",
+      "geo_location": "Luanda",
+      "source_ip": "192.168.100.10",
+      "device": "Windows Server 2022",
+      "device_trust_score": 0.31,
+      "expected_behavior": {
+        "max_transaction": 5000000,
+        "business_hours_only": true,
+        "trusted_regions": [
+          "Luanda"
+        ]
+      },
+      "observed_behavior": {
+        "transaction_amount": 25000000,
+        "transaction_hour": "02:11",
+        "region": "External"
+      },
+      "anomaly_features": {
+        "velocity_score": 0.94,
+        "location_deviation": 0.97,
+        "behavior_deviation": 0.92,
+        "historical_similarity": 0.11
+      },
+      "detected_by": "fraud_realtime_engine",
+      "recommended_action": "block_transaction",
+      "status": "critical_response",
+      "audit_required": true,
+      "tags": [
+        "fraud",
+        "wire_transfer",
+        "critical"
+      ]
+    },
+    {
+      "fixture_id": "fixture-000002",
+      "tenant_id": "tenant_benguela_beta",
+      "company_name": "Beta Logistics",
+      "industry": "Transport",
+      "event_type": "ueba_anomaly",
+      "severity": "high",
+      "risk_score": 0.91,
+      "transaction_amount": 0,
+      "currency": "AOA",
+      "transaction_type": "login_activity",
+      "transaction_status": "suspicious",
+      "user_id": "ops_manager_09",
+      "user_role": "manager",
+      "department": "operations",
+      "timestamp": "2026-05-10T09:10:00Z",
+      "geo_location": "Benguela",
+      "source_ip": "10.0.44.9",
+      "device": "Linux Workstation",
+      "device_trust_score": 0.52,
+      "expected_behavior": {
+        "daily_logins": 3,
+        "allowed_regions": [
+          "Benguela"
+        ]
+      },
+      "observed_behavior": {
+        "daily_logins": 27,
+        "regions": [
+          "Benguela",
+          "Lisbon",
+          "Dubai"
+        ]
+      },
+      "anomaly_features": {
+        "identity_risk": 0.93,
+        "access_pattern_score": 0.89,
+        "travel_anomaly_score": 0.96
+      },
+      "detected_by": "ueba_engine",
+      "recommended_action": "force_mfa",
+      "status": "under_investigation",
+      "audit_required": true,
+      "tags": [
+        "ueba",
+        "identity",
+        "security"
+      ]
+    },
+    {
+      "fixture_id": "fixture-000003",
+      "tenant_id": "tenant_huambo_gamma",
+      "company_name": "Gamma Foods",
+      "industry": "Food Distribution",
+      "event_type": "cashflow_anomaly",
+      "severity": "medium",
+      "risk_score": 0.78,
+      "transaction_amount": -3500000,
+      "currency": "AOA",
+      "transaction_type": "cashflow_variation",
+      "transaction_status": "detected",
+      "user_id": "cfo_01",
+      "user_role": "cfo",
+      "department": "finance",
+      "timestamp": "2026-05-10T09:20:00Z",
+      "geo_location": "Huambo",
+      "source_ip": "172.16.90.4",
+      "device": "MacOS",
+      "device_trust_score": 0.87,
+      "expected_behavior": {
+        "cashflow_variation_limit": 0.15
+      },
+      "observed_behavior": {
+        "cashflow_drop": 0.48
+      },
+      "anomaly_features": {
+        "forecast_deviation": 0.81,
+        "seasonality_break": 0.76
+      },
+      "detected_by": "cashflow_forecast_model",
+      "recommended_action": "financial_review",
+      "status": "open",
+      "audit_required": false,
+      "tags": [
+        "cashflow",
+        "forecast",
+        "finance"
+      ]
+    },
+    {
+      "fixture_id": "fixture-000004",
+      "tenant_id": "tenant_lobito_delta",
+      "company_name": "Delta Infra",
+      "industry": "Construction",
+      "event_type": "government_budget_anomaly",
+      "severity": "critical",
+      "risk_score": 0.97,
+      "transaction_amount": 76000000,
+      "currency": "AOA",
+      "transaction_type": "budget_overrun",
+      "transaction_status": "critical",
+      "user_id": "gov_controller",
+      "user_role": "government_admin",
+      "department": "projects",
+      "timestamp": "2026-05-10T09:30:00Z",
+      "geo_location": "Lobito",
+      "source_ip": "172.18.0.7",
+      "device": "Government Terminal",
+      "device_trust_score": 0.65,
+      "expected_behavior": {
+        "max_budget_usage": 1.0
+      },
+      "observed_behavior": {
+        "budget_usage": 1.74
+      },
+      "anomaly_features": {
+        "overspend_score": 0.99,
+        "approval_risk": 0.94
+      },
+      "detected_by": "government_kpi_engine",
+      "recommended_action": "freeze_project",
+      "status": "executive_review",
+      "audit_required": true,
+      "tags": [
+        "government",
+        "budget",
+        "overspending"
+      ]
+    },
+    {
+      "fixture_id": "fixture-000005",
+      "tenant_id": "tenant_namibe_sigma",
+      "company_name": "Sigma Telecom",
+      "industry": "Telecommunications",
+      "event_type": "realtime_latency_anomaly",
+      "severity": "high",
+      "risk_score": 0.88,
+      "transaction_amount": 0,
+      "currency": "AOA",
+      "transaction_type": "stream_delay",
+      "transaction_status": "degraded",
+      "user_id": "stream_engine",
+      "user_role": "system",
+      "department": "infrastructure",
+      "timestamp": "2026-05-10T09:40:00Z",
+      "geo_location": "Namibe",
+      "source_ip": "10.20.10.90",
+      "device": "Realtime Cluster",
+      "device_trust_score": 0.99,
+      "expected_behavior": {
+        "max_latency_ms": 50
+      },
+      "observed_behavior": {
+        "latency_ms": 410
+      },
+      "anomaly_features": {
+        "latency_spike": 0.91,
+        "queue_pressure": 0.84
+      },
+      "detected_by": "stream_monitor_engine",
+      "recommended_action": "scale_cluster",
+      "status": "monitoring",
+      "audit_required": false,
+      "tags": [
+        "realtime",
+        "latency",
+        "streaming"
+      ]
+    }
+  ]
+}

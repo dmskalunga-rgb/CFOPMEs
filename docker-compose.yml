@@ -1,0 +1,252 @@
+# kwanza-ai-core/docker-compose.yml
+version: "3.9"
+
+name: kwanza-ai-core
+
+services:
+  api:
+    image: kwanza-ai-core/api:${KWANZA_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: kwanza-ai-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_NAME: kwanza-ai-core
+      APP_ENV: ${APP_ENV:-production}
+      APP_PORT: 8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      DATABASE_URL: postgresql+psycopg://kwanza:${POSTGRES_PASSWORD:-kwanza_secure}@postgres:5432/kwanza_ai
+      REDIS_URL: redis://redis:6379/0
+      OBJECT_STORAGE_ENDPOINT: http://minio:9000
+      OBJECT_STORAGE_BUCKET: ${MINIO_BUCKET:-kwanza-artifacts}
+      OBJECT_STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER:-kwanza}
+      OBJECT_STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-kwanza_secure}
+
+      MODEL_REGISTRY_URI: /app/artifacts/model_registry
+      FEATURE_STORE_URI: /app/artifacts/feature_store
+      AUDIT_LOG_PATH: /app/logs/audit/audit.jsonl
+
+      PROMETHEUS_ENABLED: "true"
+      OTEL_SERVICE_NAME: kwanza-ai-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - kwanza_artifacts:/app/artifacts
+      - kwanza_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - kwanza_backend
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    image: kwanza-ai-core/worker:${KWANZA_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    container_name: kwanza-ai-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DATABASE_URL: postgresql+psycopg://kwanza:${POSTGRES_PASSWORD:-kwanza_secure}@postgres:5432/kwanza_ai
+      REDIS_URL: redis://redis:6379/0
+      QUEUE_NAME: ${QUEUE_NAME:-ml-jobs}
+      OTEL_SERVICE_NAME: kwanza-ai-worker
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    command: ["python", "-m", "kwanza_ai_core.workers.main"]
+    volumes:
+      - kwanza_artifacts:/app/artifacts
+      - kwanza_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - kwanza_backend
+    deploy:
+      replicas: ${WORKER_REPLICAS:-1}
+
+  scheduler:
+    image: kwanza-ai-core/worker:${KWANZA_VERSION:-latest}
+    container_name: kwanza-ai-scheduler
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: postgresql+psycopg://kwanza:${POSTGRES_PASSWORD:-kwanza_secure}@postgres:5432/kwanza_ai
+      REDIS_URL: redis://redis:6379/0
+      OTEL_SERVICE_NAME: kwanza-ai-scheduler
+    command: ["python", "-m", "kwanza_ai_core.scheduler.main"]
+    volumes:
+      - kwanza_artifacts:/app/artifacts
+      - kwanza_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - kwanza_backend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: kwanza-ai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kwanza_ai
+      POSTGRES_USER: kwanza
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kwanza_secure}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - kwanza_postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - kwanza_backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kwanza -d kwanza_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: kwanza-ai-redis
+    restart: unless-stopped
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD:-kwanza_redis_secure}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - kwanza_redis:/data
+    networks:
+      - kwanza_backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-kwanza_redis_secure}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: kwanza-ai-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-kwanza}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-kwanza_secure}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - kwanza_minio:/data
+    networks:
+      - kwanza_backend
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kwanza-ai-prometheus
+    restart: unless-stopped
+    profiles: ["observability"]
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - kwanza_prometheus:/prometheus
+    networks:
+      - kwanza_backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kwanza-ai-grafana
+    restart: unless-stopped
+    profiles: ["observability"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin_secure}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - kwanza_grafana:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - kwanza_backend
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: kwanza-ai-otel
+    restart: unless-stopped
+    profiles: ["observability"]
+    command: ["--config=/etc/otelcol/config.yml"]
+    volumes:
+      - ./docker/otel/config.yml:/etc/otelcol/config.yml:ro
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+    networks:
+      - kwanza_backend
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: kwanza-ai-pgadmin
+    restart: unless-stopped
+    profiles: ["tools"]
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@kwanza.ai}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin_secure}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - kwanza_pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - kwanza_backend
+
+networks:
+  kwanza_backend:
+    driver: bridge
+    name: kwanza-ai-backend
+
+volumes:
+  kwanza_postgres:
+  kwanza_redis:
+  kwanza_minio:
+  kwanza_artifacts:
+  kwanza_logs:
+  kwanza_prometheus:
+  kwanza_grafana:
+  kwanza_pgadmin:
