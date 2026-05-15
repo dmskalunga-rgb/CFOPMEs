@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+python-dotenv
+supabase
+httpx
+python-jose[cryptography]
+passlib[bcrypt]
