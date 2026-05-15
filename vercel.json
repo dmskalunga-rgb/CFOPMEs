@@ -1,14 +1,13 @@
 {
+  "framework": "vite",
+  "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-
   "functions": {
     "api/main.py": {
       "maxDuration": 30
     }
   },
-
   "rewrites": [
     {
       "source": "/api/(.*)",
