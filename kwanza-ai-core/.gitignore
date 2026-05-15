@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+env/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ML binaries (evitar GitHub errors)
+*.dll
+*.so
+
+# Models (opcional se forem grandes)
+*.pkl
+*.joblib

@@ -1,26 +1,18 @@
 {
-  "installCommand": "pip install -r requirements.txt",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+
   "functions": {
-    "api/main.py": {
+    "kwanza-ai-core/api/main.py": {
       "maxDuration": 30
     }
   },
+
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/main.py"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/main.py"
-    },
-    {
-      "source": "/docs",
-      "destination": "/api/main.py"
-    },
-    {
-      "source": "/openapi.json",
-      "destination": "/api/main.py"
+      "destination": "/kwanza-ai-core/api/main.py"
     }
   ]
 }
