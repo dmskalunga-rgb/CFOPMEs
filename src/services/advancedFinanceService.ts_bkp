@@ -157,20 +157,6 @@ function getNextNMonths(n: number): string[] {
   return months
 }
 
-function getMonthStartDate(ym: string): string {
-  const [year, month] = ym.split('-').map(Number)
-  if (!year || !month) throw new Error(`Mês inválido: ${ym}`)
-  return `${year}-${String(month).padStart(2, '0')}-01`
-}
-
-function getMonthEndDate(ym: string): string {
-  const [year, month] = ym.split('-').map(Number)
-  if (!year || !month) throw new Error(`Mês inválido: ${ym}`)
-
-  const lastDay = new Date(year, month, 0)
-  return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
-}
-
 // ─── Algoritmo de previsão: média móvel ponderada + tendência linear ──────────
 
 function linearTrend(values: number[]): number {
@@ -203,8 +189,8 @@ export const historicalService = {
   async getMonthlyAggregates(nMonths = 12): Promise<MonthlyAggregate[]> {
     const tenantId = await getTenantId()
     const months   = getLastNMonths(nMonths)
-    const start    = getMonthStartDate(months[0])
-    const end      = getMonthEndDate(months[months.length - 1])
+    const start    = months[0] + '-01'
+    const end      = months[months.length - 1] + '-31'
 
     const { data, error } = await supabase
       .from('transactions')
@@ -292,10 +278,10 @@ export const categoryService = {
     const tenantId = await getTenantId()
     const months   = getLastNMonths(nMonths)
     const prevMonths = getLastNMonths(nMonths * 2).slice(0, nMonths)
-    const start    = getMonthStartDate(months[0])
-    const end      = getMonthEndDate(months[months.length - 1])
-    const prevStart = getMonthStartDate(prevMonths[0])
-    const prevEnd   = getMonthEndDate(prevMonths[prevMonths.length - 1])
+    const start    = months[0] + '-01'
+    const end      = months[months.length - 1] + '-31'
+    const prevStart = prevMonths[0] + '-01'
+    const prevEnd   = prevMonths[prevMonths.length - 1] + '-31'
 
     const [curr, prev] = await Promise.all([
       supabase.from('transactions').select('category_name, amount')
@@ -598,7 +584,7 @@ export const aiInsightsService = {
         tenant_id:     tenantId,
         analysis_name: `Análise IA — ${new Date().toLocaleDateString('pt-AO')}`,
         analysis_type: 'AI_INSIGHTS',
-        period_start:  getMonthStartDate(getLastNMonths(6)[0]),
+        period_start:  getLastNMonths(6)[0] + '-01',
         period_end:    new Date().toISOString().split('T')[0],
         input_data:    { nMonths: 6, categoriesCount: categories.length },
         results:       { insightsCount: insights.length, summary: { income: summary.totalIncome6M, expense: summary.totalExpense6M } },
