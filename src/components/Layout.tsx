@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Brain, AlertTriangle } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -79,6 +80,8 @@ const navItems: NavItem[] = [
   { label: 'Marketplace', path: ROUTE_PATHS.MARKETPLACE, icon: Store },
   { label: 'Mobile', path: ROUTE_PATHS.MOBILE, icon: Smartphone },
   { label: 'Configurações', path: ROUTE_PATHS.SETTINGS, icon: Settings },
+  { label: 'IA Transversal', path: ROUTE_PATHS.AI_TRANSVERSAL, icon: Brain },
+  { label: 'UEBA (Anomalias)', path: ROUTE_PATHS.AI_UEBA, icon: AlertTriangle },
 ];
 
 const aiModules: NavItem[] = [
@@ -163,8 +166,6 @@ export function Layout({ children }: LayoutProps) {
     }
   };
   
-  { label: 'IA Transversal', path: ROUTE_PATHS.AI_TRANSVERSAL, icon: Brain },
-  { label: 'UEBA (Anomalias)', path: ROUTE_PATHS.AI_UEBA, icon: AlertTriangle },
 
   const handleLogout = async () => {
     await signOut();
