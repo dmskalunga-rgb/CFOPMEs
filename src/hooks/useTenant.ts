@@ -1,0 +1,1 @@
+// Hook para obter o tenant_id do utilizador autenticado\nimport { useAuth } from '@/hooks/useAuth';\n\nexport function useTenant() {\n  const { profile, user } = useAuth();\n  const tenantId = profile?.tenant_id ?? null;\n  return { tenantId, profile, user };\n}\n
