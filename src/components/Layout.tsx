@@ -162,6 +162,9 @@ export function Layout({ children }: LayoutProps) {
       document.documentElement.classList.remove('dark');
     }
   };
+  
+  { label: 'IA Transversal', path: ROUTE_PATHS.AI_TRANSVERSAL, icon: Brain },
+  { label: 'UEBA (Anomalias)', path: ROUTE_PATHS.AI_UEBA, icon: AlertTriangle },
 
   const handleLogout = async () => {
     await signOut();
