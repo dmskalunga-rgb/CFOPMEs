@@ -5,85 +5,17 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Helper para invocar Edge Functions com tratamento de erros
-type EdgeHttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
-
-class EdgeFunctionError extends Error {
-  public readonly functionName: string;
-  public readonly cause?: unknown;
-
-  constructor(functionName: string, message: string, cause?: unknown) {
-    super(message);
-    this.name = 'EdgeFunctionError';
-    this.functionName = functionName;
-    this.cause = cause;
-  }
-}
-
 async function invokeFunction<T = unknown>(
   functionName: string,
   body?: Record<string, unknown>,
-  method: EdgeHttpMethod = 'POST'
+  method: string = 'POST'
 ): Promise<T> {
-  try {
-    const { data, error } = await supabase.functions.invoke(functionName, {
-      body,
-      method,
-    });
-
-    if (error) {
-      throw new EdgeFunctionError(
-        functionName,
-        error.message || `Erro na função ${functionName}`,
-        error
-      );
-    }
-
-    return data as T;
-  } catch (error) {
-    if (error instanceof EdgeFunctionError) {
-      throw error;
-    }
-
-    throw new EdgeFunctionError(
-      functionName,
-      error instanceof Error ? error.message : `Falha de rede/CORS na função ${functionName}`,
-      error
-    );
-  }
-}
-
-function logEdgeFallback(functionName: string, error: unknown): void {
-  console.warn(`[KwanzaControl] Edge Function ${functionName} indisponível. Usando fallback controlado.`, error);
-}
-
-type AiInsightFallback = {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  confidence: number;
-  generated_at: string;
-  source: 'fallback';
-};
-
-function buildAiInsightsFallback(type = 'all'): { insights: AiInsightFallback[]; source: 'fallback'; degraded: true } {
-  return {
-    source: 'fallback',
-    degraded: true,
-    insights: [
-      {
-        id: `fallback-ai-insight-${Date.now()}`,
-        type,
-        title: 'IA temporariamente indisponível',
-        description: 'A Edge Function ai-insights não respondeu. O sistema manteve a operação usando fallback local e dados persistidos.',
-        priority: 'MEDIUM',
-        confidence: 0,
-        generated_at: new Date().toISOString(),
-        source: 'fallback',
-      },
-    ],
-  };
+  const { data, error } = await supabase.functions.invoke(functionName, {
+    body,
+    method: method as 'GET' | 'POST' | 'PUT' | 'DELETE'
+  });
+  if (error) throw new Error(error.message || `Erro na função ${functionName}`);
+  return data as T;
 }
 
 // =====================================================
@@ -526,21 +458,11 @@ export const tenantEdgeService = {
 // =====================================================
 export const aiInsightsEdgeService = {
   async list() {
-    try {
-      return await invokeFunction('ai-insights', { type: 'list' }, 'GET');
-    } catch (error) {
-      logEdgeFallback('ai-insights:list', error);
-      return buildAiInsightsFallback('list');
-    }
+    return invokeFunction('ai-insights', { type: 'list' }, 'GET');
   },
 
   async generate(type?: string) {
-    try {
-      return await invokeFunction('ai-insights', { type: type ?? 'all' });
-    } catch (error) {
-      logEdgeFallback('ai-insights:generate', error);
-      return buildAiInsightsFallback(type ?? 'all');
-    }
+    return invokeFunction('ai-insights', { type });
   }
 };
 

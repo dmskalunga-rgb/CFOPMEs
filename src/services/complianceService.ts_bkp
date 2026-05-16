@@ -59,81 +59,6 @@ export interface DataSubjectRequest {
   notes: string;
 }
 
-
-type ComplianceDashboardData = {
-  overall_score: number;
-  standards: Record<ComplianceStandard, { score: number; status: string }>;
-  recent_findings: ComplianceFinding[];
-  pending_requests: number;
-  audit_trail_count: number;
-};
-
-function createEmptyComplianceReport(
-  tenantId: string,
-  standard: ComplianceStandard,
-  periodStart: string,
-  periodEnd: string,
-  reason = 'Edge Function indisponível. Relatório gerado em modo degradado.'
-): ComplianceReport {
-  return {
-    id: `fallback-${standard.toLowerCase()}-${Date.now()}`,
-    tenant_id: tenantId,
-    standard,
-    report_type: 'assessment',
-    period_start: periodStart,
-    period_end: periodEnd,
-    status: 'draft',
-    findings: [
-      {
-        id: 'fallback-finding-001',
-        control_id: 'EDGE_FUNCTION_UNAVAILABLE',
-        control_name: 'Disponibilidade da Edge Function de Compliance',
-        status: 'partial',
-        evidence: [],
-        notes: reason,
-        risk_level: 'medium',
-      },
-    ],
-    score: 0,
-    generated_at: new Date().toISOString(),
-    generated_by: 'system-fallback',
-  };
-}
-
-function getComplianceDashboardFallback(): ComplianceDashboardData {
-  return {
-    overall_score: 0,
-    standards: {
-      GDPR: { score: 0, status: 'unavailable' },
-      LGPD: { score: 0, status: 'unavailable' },
-      SOC2: { score: 0, status: 'unavailable' },
-      ISO27001: { score: 0, status: 'unavailable' },
-      HIPAA: { score: 0, status: 'unavailable' },
-    },
-    recent_findings: [
-      {
-        id: 'fallback-dashboard-001',
-        control_id: 'EDGE_FUNCTION_UNAVAILABLE',
-        control_name: 'Dashboard de Compliance',
-        status: 'partial',
-        evidence: [],
-        notes: 'Edge Function compliance-dashboard indisponível. Exibindo fallback local controlado.',
-        risk_level: 'medium',
-      },
-    ],
-    pending_requests: 0,
-    audit_trail_count: 0,
-  };
-}
-
-function normalizeComplianceReport(
-  value: unknown,
-  fallback: ComplianceReport
-): ComplianceReport {
-  if (!value || typeof value !== 'object') return fallback;
-  return { ...fallback, ...(value as Partial<ComplianceReport>) };
-}
-
 export const complianceService = {
   /**
    * Gerar relatório de compliance
@@ -144,28 +69,17 @@ export const complianceService = {
     periodStart: string,
     periodEnd: string
   ): Promise<ComplianceReport> {
-    const fallback = createEmptyComplianceReport(tenantId, standard, periodStart, periodEnd);
+    const { data, error } = await supabase.functions.invoke('compliance-generate-report', {
+      body: {
+        tenant_id: tenantId,
+        standard,
+        period_start: periodStart,
+        period_end: periodEnd,
+      },
+    });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('compliance-generate-report', {
-        body: {
-          tenant_id: tenantId,
-          standard,
-          period_start: periodStart,
-          period_end: periodEnd,
-        },
-      });
-
-      if (error) {
-        console.warn('[KwanzaControl] compliance-generate-report unavailable. Using fallback report.', error);
-        return fallback;
-      }
-
-      return normalizeComplianceReport(data, fallback);
-    } catch (error) {
-      console.warn('[KwanzaControl] compliance-generate-report failed with network/CORS/auth error. Using fallback report.', error);
-      return fallback;
-    }
+    if (error) throw error;
+    return data;
   },
 
   /**
@@ -311,38 +225,19 @@ export const complianceService = {
   /**
    * Obter dashboard de compliance
    */
-  async getComplianceDashboard(tenantId: string): Promise<ComplianceDashboardData> {
-    const fallback = getComplianceDashboardFallback();
+  async getComplianceDashboard(tenantId: string): Promise<{
+    overall_score: number;
+    standards: Record<ComplianceStandard, { score: number; status: string }>;
+    recent_findings: ComplianceFinding[];
+    pending_requests: number;
+    audit_trail_count: number;
+  }> {
+    const { data, error } = await supabase.functions.invoke('compliance-dashboard', {
+      body: { tenant_id: tenantId },
+    });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('compliance-dashboard', {
-        body: { tenant_id: tenantId },
-      });
-
-      if (error) {
-        console.warn('[KwanzaControl] compliance-dashboard unavailable. Using fallback dashboard.', error);
-        return fallback;
-      }
-
-      if (!data || typeof data !== 'object') {
-        return fallback;
-      }
-
-      return {
-        ...fallback,
-        ...(data as Partial<ComplianceDashboardData>),
-        standards: {
-          ...fallback.standards,
-          ...((data as Partial<ComplianceDashboardData>).standards ?? {}),
-        },
-        recent_findings: Array.isArray((data as Partial<ComplianceDashboardData>).recent_findings)
-          ? ((data as Partial<ComplianceDashboardData>).recent_findings ?? [])
-          : fallback.recent_findings,
-      };
-    } catch (error) {
-      console.warn('[KwanzaControl] compliance-dashboard failed with network/CORS/auth error. Using fallback dashboard.', error);
-      return fallback;
-    }
+    if (error) throw error;
+    return data;
   },
 
   /**
