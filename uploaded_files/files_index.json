@@ -1,0 +1,49 @@
+{
+  "documents": [],
+  "tables_parsed": [],
+  "tables_source_info": [],
+  "images": [
+    {
+      "original_name": "Captura de tela1406",
+      "file_name": "Captura de tela1406.png",
+      "file_path": "/workspace/kwanzacontrol/public/images/Captura de tela1406.png",
+      "rel_path": "images/Captura de tela1406.png",
+      "file_type": "png",
+      "category": "images"
+    },
+    {
+      "original_name": "Captura de tela4952",
+      "file_name": "Captura de tela4952.png",
+      "file_path": "/workspace/kwanzacontrol/public/images/Captura de tela4952.png",
+      "rel_path": "images/Captura de tela4952.png",
+      "file_type": "png",
+      "category": "images"
+    },
+    {
+      "original_name": "Captura de tela6025",
+      "file_name": "Captura de tela6025.png",
+      "file_path": "/workspace/kwanzacontrol/public/images/Captura de tela6025.png",
+      "rel_path": "images/Captura de tela6025.png",
+      "file_type": "png",
+      "category": "images"
+    },
+    {
+      "original_name": "Captura de tela2691",
+      "file_name": "Captura de tela2691.png",
+      "file_path": "/workspace/kwanzacontrol/public/images/Captura de tela2691.png",
+      "rel_path": "images/Captura de tela2691.png",
+      "file_type": "png",
+      "category": "images"
+    }
+  ],
+  "summary": {
+    "total_files": 4,
+    "by_category": {
+      "documents": 0,
+      "tables_parsed": 0,
+      "tables_source_info": 0,
+      "images": 4
+    },
+    "processing_time": null
+  }
+}
